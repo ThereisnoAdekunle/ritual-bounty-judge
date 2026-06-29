@@ -2,8 +2,8 @@
 
 Built on Ritual Testnet (Chain ID 1979) as part of the Ritual AI Bounty Judge Workshop Homework.
 
-**Deployed Contract:** `0x37A74997D881D1C3Fc81552c3FC9421E94d3B04D`  
-**Explorer:** https://explorer.ritualfoundation.org/address/0x37A74997D881D1C3Fc81552c3FC9421E94d3B04D
+**Deployed Contract:** `0x98377F405114054dDD9b47C7c8376cd33e02b84F`  
+**Explorer:** https://explorer.ritualfoundation.org/address/0x98377F405114054dDD9b47C7c8376cd33e02b84F
 
 ---
 
