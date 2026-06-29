@@ -13,6 +13,8 @@ contract PrivacyBountyJudgeTest is Test {
     address bob   = makeAddr("bob");
     address carol = makeAddr("carol");
 
+    address constant PRECOMPILE = 0x0000000000000000000000000000000000000065;
+
     uint256 constant REWARD    = 1 ether;
     uint256 constant ONE_HOUR  = 3600;
     uint256 constant TWO_HOURS = 7200;
@@ -48,19 +50,26 @@ contract PrivacyBountyJudgeTest is Test {
         return judge.computeCommitment(answer, salt, participant, bountyId);
     }
 
+    // Mock Ritual AI precompile to return a valid response
+    function mockRitualAI(string memory response) internal {
+        vm.mockCall(
+            PRECOMPILE,
+            bytes(""),
+            abi.encode(response)
+        );
+    }
     // ─── createBounty ───────────────────────────────────────────
 
     function test_CreateBounty_Success() public view {
         (
             address _owner,
-            string memory _desc,
+            ,
             uint256 _reward,
-            uint256 _subDeadline,
-            uint256 _revDeadline,
+            ,
+            ,
             bool _judged,
             bool _finalized,
             address _winner,
-            string memory _judgingResult
         ) = judge.bounties(0);
 
         assertEq(_owner,     owner);
@@ -224,8 +233,8 @@ contract PrivacyBountyJudgeTest is Test {
     }
 
     function test_RevealAnswer_CopyAttackFails() public {
-        bytes32 salt         = keccak256("alicesalt");
-        string memory answer = "Original answer";
+        bytes32 salt            = keccak256("alicesalt");
+        string memory answer    = "Original answer";
         bytes32 aliceCommitment = makeCommitment(alice, answer, salt, 0);
 
         vm.prank(alice);
@@ -257,6 +266,8 @@ contract PrivacyBountyJudgeTest is Test {
         judge.revealAnswer(0, answer, salt);
 
         vm.warp(revealDeadline + 1);
+
+        mockRitualAI('{"winnerIndex":0,"summary":"Alice wins"}');
 
         vm.prank(owner);
         judge.judgeAll(0, bytes('{"winnerIndex":0,"summary":"Alice wins"}'));
@@ -304,6 +315,8 @@ contract PrivacyBountyJudgeTest is Test {
 
         vm.warp(revealDeadline + 1);
 
+        mockRitualAI('{"winnerIndex":0}');
+
         vm.prank(owner);
         judge.judgeAll(0, bytes('{"winnerIndex":0}'));
 
@@ -341,6 +354,8 @@ contract PrivacyBountyJudgeTest is Test {
 
         vm.warp(revealDeadline + 1);
 
+        mockRitualAI("Alice wins");
+
         vm.prank(owner);
         judge.judgeAll(0, bytes("result"));
 
@@ -366,6 +381,8 @@ contract PrivacyBountyJudgeTest is Test {
         judge.revealAnswer(0, answer, salt);
 
         vm.warp(revealDeadline + 1);
+
+        mockRitualAI("Alice wins");
 
         vm.prank(owner);
         judge.judgeAll(0, bytes("result"));

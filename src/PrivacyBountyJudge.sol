@@ -136,6 +136,9 @@ contract PrivacyBountyJudge {
         emit AnswerRevealed(bountyId, msg.sender);
     }
 
+    // Ritual AI precompile address on testnet
+    address constant LLM_INFERENCE_PRECOMPILE = 0x0000000000000000000000000000000000000065;
+
     function judgeAll(
         uint256 bountyId,
         bytes calldata llmInput
@@ -145,7 +148,12 @@ contract PrivacyBountyJudge {
         require(!b.judged,                                   "Already judged");
         require(b.revealedParticipants.length > 0,           "No valid revealed submissions");
 
-        b.judgingResult = string(llmInput);
+        // Call Ritual AI precompile with all revealed answers in one batch
+        (bool success, bytes memory result) = LLM_INFERENCE_PRECOMPILE.call(llmInput);
+        require(success, "Ritual AI call failed");
+
+        // Decode and store the AI response
+        b.judgingResult = abi.decode(result, (string));
         b.judged        = true;
 
         emit BountyJudged(bountyId, b.judgingResult);
